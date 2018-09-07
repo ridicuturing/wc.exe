@@ -2,6 +2,8 @@ package wc;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -9,13 +11,31 @@ import java.util.regex.Pattern;
 
 public class WC {
 	
-	
-	public static long  c(String fname) {
+	public static String getFileString(String fname) {
 		File f = new File(fname);
 		if(!f.isFile()) {
+			return null;
+		}
+		byte[] buf = new byte[(int) f.length()];
+		try {
+			FileInputStream fr = new FileInputStream(f);
+			fr.read(buf);
+			fr.close();
+			return new String(buf,"UTF-8");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static long  c(String fname) {
+		String txt = null;
+		if((txt = getFileString(fname)) == null) {
 			return -1;
 		}
-		return f.length();
+		txt = txt.replace("\r", "");  //根据视觉习惯以及从多软件的潜规则，这里把windows换行中的\r去掉
+		return txt.length();
 	}
 	
 	public static long w(String fname) {
@@ -38,20 +58,29 @@ public class WC {
 		return num;
 	}
 	public static int l(String fname) {
-		int lines = 1;
-		if(!new File(fname).isFile())
+		String txt = null;
+		int lines = 0;
+		if((txt = getFileString(fname)) == null) 
 			return -1;
-		try {
-			BufferedReader br= new BufferedReader(new FileReader(fname));
-			while(br.readLine() != null)
-				lines++;
-			br.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return lines;
+		if(txt.length() == 0)
+			return 0;
+		lines = txt.split("\n").length;
+		if(txt.lastIndexOf("\n") == txt.length()-1)
+			lines++;
+		return lines; 
 	}
 	public static void main(String[] args) throws Exception {
-		System.out.println(WC.w("D:\\git\\wc.exe\\WCTestFile\\w\\1.c"));
+		
+		File f = new File("d:/1.txt");
+		BufferedReader br = new BufferedReader(new FileReader(f));
+		String c = "";
+		while((c = br.readLine()) != null ) {
+			System.out.println(c.length());
+		}
+		System.out.println(f.length());
+		
+		
+		br.close();
+		System.out.println("" == null);
 	}
 }
