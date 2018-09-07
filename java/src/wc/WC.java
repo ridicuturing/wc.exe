@@ -11,6 +11,7 @@ public class WC {
 		return f.length();
 	}
 	
+	
 	public static void main(String[] args) throws Exception {
 		System.out.println(WC.c("d:\\1.c"));
 	}
