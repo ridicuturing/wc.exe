@@ -2,6 +2,7 @@ package wc;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,6 +109,11 @@ public class WC {
 			return null;
 		}
 		if(txt.length() == 0){
+			System.out.println("\n" +
+					"文件名字: " + fname + "\n" + 
+					"空行" + a[0] + "\n" +
+					"代码行" + a[1] + "\n" +
+					"注释行" + a[2]);
 			return new int[] {0,0,0};
 		}
 		String lines[] = txt.replaceAll("\r","").split("\n");
@@ -152,13 +158,35 @@ public class WC {
 		if(m.find()) {
 			a[0] += m.group(0).length();
 		}
+		System.out.println("\n" +
+				"文件名字: " + fname + "\n" + 
+				"空行" + a[0] + "\n" +
+				"代码行" + a[1] + "\n" +
+				"注释行" + a[2]);
 		return a;
+	}
+	public static int s(String dir) {
+		int filecount = 0;
+		File d = new File(dir);
+		if(!d.exists()) {
+			System.out.println(dir + " 路径不存在");
+			return -1;
+		}
+		if(!d.isDirectory()) {
+			WC.a(dir);
+			System.out.println(dir);
+			return 1;
+		}
+		for(String fname:d.list()) {
+			filecount += WC.s(dir + "\\" + fname);
+		}
+		return filecount;
 	}
 	
 	public static void main(String[] args) throws Exception {
-		String fname = "D:\\git\\wc.exe\\WCTestFile\\classicfile.c";
-		int[] a = WC.a(fname);
-		byte[] s = WC.getFile(fname, 1);
-		System.out.println(s[0]);
+		
+		
+			
+			
 	}
 }

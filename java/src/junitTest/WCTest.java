@@ -72,5 +72,12 @@ class WCTest {
 		assertArrayEquals(new int[] {0,0,0},a);
 	}
 	
+	@Test
+	public void tests() {
+		int a= WC.s(root);
+		assertEquals(9, a);
+		
+	}
+	
 
 }
