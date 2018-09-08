@@ -48,12 +48,28 @@ class WCTest {
 		assertEquals(1,a);
 		a = WC.w(root + "classicfile.c");
 		assertEquals(16,a);
-		a = WC.w(root + "emptyline1.txt");
+		a = WC.w(root + "emptyline1.c");
 		assertEquals(1,a);
-		a = WC.w(root + "emptyline2.txt");
+		a = WC.w(root + "emptyline2.c");//为什么txt能通过？
 		assertEquals(1,a);
 		a = WC.w(root + "null.c");
 		assertEquals(0,a);
+	}
+	
+	@Test
+	public void testa() {
+		int[] a= WC.a(root + "Achar.c");
+		assertArrayEquals(new int[] {1,0,0}, a);
+		a = WC.a(root + "Aword.c");
+		assertArrayEquals(new int[] {0,1,0},a);
+		a = WC.a(root + "classicfile.c");
+		assertArrayEquals(new int[] {4,5,3},a);
+		a = WC.a(root + "emptyline1.c");
+		assertArrayEquals(new int[] {5,0,0},a);
+		a = WC.a(root + "emptyline2.c");
+		assertArrayEquals(new int[] {5,0,0},a);
+		a = WC.a(root + "null.c");
+		assertArrayEquals(null,a);
 	}
 	
 
