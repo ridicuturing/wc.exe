@@ -16,9 +16,9 @@ class WCTest {
 		assertEquals(5,a);
 		a = WC.c(root + "classicfile.c");
 		assertEquals(126,a);
-		a = WC.c(root + "emptyline1.txt");
+		a = WC.c(root + "emptyline1.c");
 		assertEquals(6,a);
-		a = WC.c(root + "emptyline2.txt");
+		a = WC.c(root + "emptyline2.c");
 		assertEquals(6,a);
 		a = WC.c(root + "null.c");
 		assertEquals(0,a);
@@ -32,9 +32,9 @@ class WCTest {
 		assertEquals(1,a);
 		a = WC.l(root + "classicfile.c");
 		assertEquals(12,a);
-		a = WC.l(root + "emptyline1.txt");
+		a = WC.l(root + "emptyline1.c");
 		assertEquals(5,a);
-		a = WC.l(root + "emptyline2.txt");
+		a = WC.l(root + "emptyline2.c");
 		assertEquals(5,a);
 		a = WC.l(root + "null.c");
 		assertEquals(0,a);
@@ -47,10 +47,10 @@ class WCTest {
 		a = WC.w(root + "Aword.c");
 		assertEquals(1,a);
 		a = WC.w(root + "classicfile.c");
-		assertEquals(16,a);
+		assertEquals(26,a);
 		a = WC.w(root + "emptyline1.c");
 		assertEquals(1,a);
-		a = WC.w(root + "emptyline2.c");//为什么txt能通过？
+		a = WC.w(root + "emptyline2.c");
 		assertEquals(1,a);
 		a = WC.w(root + "null.c");
 		assertEquals(0,a);
@@ -69,7 +69,7 @@ class WCTest {
 		a = WC.a(root + "emptyline2.c");
 		assertArrayEquals(new int[] {5,0,0},a);
 		a = WC.a(root + "null.c");
-		assertArrayEquals(null,a);
+		assertArrayEquals(new int[] {0,0,0},a);
 	}
 	
 

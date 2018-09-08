@@ -6,8 +6,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class WC {
+	private static String encode = "UTF-8"; 
 	
-	public static String getFileString(String fname) {
+	public static void setEncode(String c) {
+		encode = c;
+	}
+	
+	public static String getFile(String fname) {
 		File f = new File(fname);
 		if(!f.isFile()) {
 			return null;
@@ -17,7 +22,25 @@ public class WC {
 			FileInputStream fr = new FileInputStream(f);
 			fr.read(buf);
 			fr.close();
-			return new String(buf,"UTF-8");
+			return new String(buf,encode);
+		} catch (Exception e) {
+			System.out.println("获取文件内容失败或编码格式错误");
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static byte[] getFile(String fname,int a) {
+		File f = new File(fname);
+		if(!f.isFile()) {
+			return null;
+		}
+		byte[] buf = new byte[(int) f.length()];
+		try {
+			FileInputStream fr = new FileInputStream(f);
+			fr.read(buf);
+			fr.close();
+			return buf;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -27,7 +50,7 @@ public class WC {
 	
 	public static long  c(String fname) {
 		String txt = null;
-		if((txt = getFileString(fname)) == null) {
+		if((txt = getFile(fname)) == null) {
 			return -1;
 		}
 		txt = txt.replace("\r", "");  //根据视觉习惯以及从多软件的潜规则，这里把windows换行中的\r去掉
@@ -36,10 +59,10 @@ public class WC {
 	
 	public static long w(String fname) {
 		long num = 0;
-		String pattern =  "([a-zA-Z_][\\w]{0,})"; //"[\\u4e00-\\u9fa5\\w]+"这个可以识别单词，但不能把中文一个个分离出来，只能一句一句
+		String pattern =  "[a-zA-Z_][\\w]{0,}|[\\u4e00-\\u9fa5]"; //"[\\u4e00-\\u9fa5\\w]+"这个可以识别单词，但不能把中文一个个分离出来，只能一句一句
 		//String line = "";
 		String txt = "";
-		if((txt = getFileString(fname)) == null) {
+		if((txt = getFile(fname)) == null) {
 			return -1;
 		}
 		Pattern r = Pattern.compile(pattern);
@@ -63,25 +86,29 @@ public class WC {
 		return num;
 	}
 	public static int l(String fname) {
-		String txt = null;
+		byte[] content = null;
 		int lines = 0;
-		if((txt = getFileString(fname)) == null) 
+		if((content = getFile(fname,1)) == null) 
 			return -1;
-		if(txt.length() == 0)
+		if(content.length == 0)
 			return 0;
-		lines = txt.split("\n").length;
-		if(txt.lastIndexOf("\n") == txt.length()-1)
-			lines++;
-		return lines; 
+		for(byte s :content) {
+			if(s == 10)
+				lines++;
+		}
+		return ++lines; 
 	}
 	
 	public static int[] a(String fname) {
 		String txt = "";
 		boolean noteflag = false;
 		int[] a = {0,0,0}; //emptyline,codeline,noteline
-		if((txt = getFileString(fname)) == null) {
+		if((txt = getFile(fname)) == null) {
 			System.out.println("a参数调用文件" + fname + "错误!");
 			return null;
+		}
+		if(txt.length() == 0){
+			return new int[] {0,0,0};
 		}
 		String lines[] = txt.replaceAll("\r","").split("\n");
 		for(String line:lines) {
@@ -89,7 +116,6 @@ public class WC {
 			line  =  line.replaceAll(" ","");
 			if(line.length() < 2) {
 				a[0]++;
-				System.out.println(fname + " a:" + line);
 				continue;
 			}
 			//codeline
@@ -120,9 +146,11 @@ public class WC {
 			//noteline
 			a[2]++;
 		}
-		if(txt.lastIndexOf("\n") == txt.length()-1) { //如果最后一行是空行，空行+1
-			a[0]++;
-			
+		txt = txt.replaceAll("\r", "");
+		Pattern r = Pattern.compile("\n+$");;
+		Matcher m = r.matcher(txt);
+		if(m.find()) {
+			a[0] += m.group(0).length();
 		}
 		return a;
 	}
@@ -130,9 +158,7 @@ public class WC {
 	public static void main(String[] args) throws Exception {
 		String fname = "D:\\git\\wc.exe\\WCTestFile\\classicfile.c";
 		int[] a = WC.a(fname);
-		
-		String[] s = "123\n".split("\n");
-		
-		System.out.println("123\n".length());
+		byte[] s = WC.getFile(fname, 1);
+		System.out.println(s[0]);
 	}
 }
