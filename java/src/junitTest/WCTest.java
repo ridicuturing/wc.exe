@@ -47,13 +47,13 @@ class WCTest {
 		a = WC.w(root + "Aword.c");
 		assertEquals(1,a);
 		a = WC.w(root + "classicfile.c");
-		assertEquals(0,a);
+		assertEquals(16,a);
 		a = WC.w(root + "emptyline1.txt");
-		assertEquals(2,a);
+		assertEquals(1,a);
 		a = WC.w(root + "emptyline2.txt");
-		assertEquals(2,a);
+		assertEquals(1,a);
 		a = WC.w(root + "null.c");
-		assertEquals(12,a);
+		assertEquals(0,a);
 	}
 	
 

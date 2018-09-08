@@ -40,9 +40,19 @@ public class WC {
 	
 	public static long w(String fname) {
 		long num = 0;
-		String pattern =  "[\\w]+"; //"[\\u4e00-\\u9fa5\\w]+"这个可以识别单词，但不能把中文一个个分离出来，只能一句一句
+		String pattern =  "([a-zA-Z_][\\w]{0,})"; //"[\\u4e00-\\u9fa5\\w]+"这个可以识别单词，但不能把中文一个个分离出来，只能一句一句
 		String line = "";
+		String txt = "";
+		if((txt = getFileString(fname)) == null) {
+			return -1;
+		}
 		Pattern r = Pattern.compile(pattern);
+		Matcher m = r.matcher(txt);
+		while(m.find()) {
+			System.out.println(m.group(0));
+			num++;
+		}
+		/*
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fname));
 			while((line = br.readLine()) != null) {
@@ -54,7 +64,7 @@ public class WC {
 			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 		return num;
 	}
 	public static int l(String fname) {
