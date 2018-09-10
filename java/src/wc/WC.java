@@ -2,7 +2,6 @@ package wc;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,19 +48,18 @@ public class WC {
 		return null;
 	}
 	
-	public static long  c(String fname) {
+	public static long  c(String fname) { //返回文件 file.c 的字符数
 		String txt = null;
 		if((txt = getFile(fname)) == null) {
 			return -1;
 		}
-		txt = txt.replace("\r", "");  //根据视觉习惯以及从多软件的潜规则，这里把windows换行中的\r去掉
+		txt = txt.replaceAll("\r", "");  //根据视觉习惯以及从多软件的潜规则，这里把windows换行中的\r去掉
 		return txt.length();
 	}
 	
-	public static long w(String fname) {
+	public static long w(String fname) { //返回文件 file.c 的词的数目
 		long num = 0;
 		String pattern =  "[a-zA-Z_][\\w]{0,}|[\\u4e00-\\u9fa5]"; //"[\\u4e00-\\u9fa5\\w]+"这个可以识别单词，但不能把中文一个个分离出来，只能一句一句
-		//String line = "";
 		String txt = "";
 		if((txt = getFile(fname)) == null) {
 			return -1;
@@ -71,22 +69,9 @@ public class WC {
 		while(m.find()) {
 			num++;
 		}
-		/*
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(fname));
-			while((line = br.readLine()) != null) {
-				Matcher m = r.matcher(line);
-				while(m.find()) {
-					num++;
-				}
-			}
-			br.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
 		return num;
 	}
-	public static int l(String fname) {
+	public static int l(String fname) { //返回文件 file.c 的行数
 		byte[] content = null;
 		int lines = 0;
 		if((content = getFile(fname,1)) == null) 
@@ -100,7 +85,7 @@ public class WC {
 		return ++lines; 
 	}
 	
-	public static int[] a(String fname) {
+	public static int[] a(String fname) { //返回更复杂的数据（代码行 / 空行 / 注释行）
 		String txt = "";
 		boolean noteflag = false;
 		int[] a = {0,0,0}; //emptyline,codeline,noteline
@@ -108,64 +93,65 @@ public class WC {
 			System.out.println("a参数调用文件" + fname + "错误!");
 			return null;
 		}
-		if(txt.length() == 0){
-			System.out.println("\n" +
-					"文件名字: " + fname + "\n" + 
-					"空行" + a[0] + "\n" +
-					"代码行" + a[1] + "\n" +
-					"注释行" + a[2]);
-			return new int[] {0,0,0};
-		}
-		String lines[] = txt.replaceAll("\r","").split("\n");
-		for(String line:lines) {
-			//emptyline
-			line  =  line.replaceAll(" ","");
-			if(line.length() < 2) {
-				a[0]++;
-				continue;
-			}
-			//codeline
-			line = line.replaceAll("//.{0,}", "");
-			if(line.indexOf("/*") != -1) {
-				if(line.indexOf("*/") != -1) {
-					line = line.replaceAll("/\\*.{0,}\\*/", "");
-				}else {
-					line = line.split("/*")[0];
-					noteflag = true;
+		if(txt.length() != 0) {
+			String lines[] = txt.replaceAll("\r","").split("\n");
+			for(String line:lines) {
+				//emptyline
+				line = line.replaceAll(" ","").replaceAll("\t","");
+				if(line.length() < 2) {
+					a[0]++;
+					continue;
 				}
-			}
-			if(noteflag && line.indexOf("*/") == -1){
+				//codeline
+				line = line.replaceAll("//.{0,}", "");
+				
+				if(line.length() < 2) { //特殊行（ "//）开头  
+					a[2]++;
+					continue;
+				}
+				if(line.indexOf("/*") != -1) {
+					if(line.indexOf("*/") != -1) {
+						line = line.replaceAll("/\\*.{0,}\\*/", "");
+					}else {
+						line = line.split("/*")[0];
+						noteflag = true;
+					}
+				}
+				if(noteflag && line.indexOf("*/") == -1){
+					a[2]++;
+					continue;
+				}else if(noteflag){
+					String[] tmp = line.split("\\*/");
+					if(tmp.length > 1) {
+						line = tmp[1];
+					}
+					else {
+						line = "";
+					}
+					noteflag = false;
+				}
+				if(line.length() > 1 ) {
+					a[1]++;
+					continue;
+				}
+				//noteline
 				a[2]++;
-				continue;
-			}else if(noteflag){
-				String[] tmp = line.split("\\*/");
-				if(tmp.length > 1)
-					line = tmp[1];
-				else
-					line = "";
-				noteflag = false;
 			}
-			if(line.length() > 1 ) {
-				a[1]++;
-				continue;
+			txt = txt.replaceAll("\r", "");
+			Pattern r = Pattern.compile("\n+$");;
+			Matcher m = r.matcher(txt);
+			if(m.find()) {
+				a[0] += m.group(0).length();
 			}
-			//noteline
-			a[2]++;
-		}
-		txt = txt.replaceAll("\r", "");
-		Pattern r = Pattern.compile("\n+$");;
-		Matcher m = r.matcher(txt);
-		if(m.find()) {
-			a[0] += m.group(0).length();
 		}
 		System.out.println("\n" +
 				"文件名字: " + fname + "\n" + 
-				"空行" + a[0] + "\n" +
-				"代码行" + a[1] + "\n" +
-				"注释行" + a[2]);
+				"空行: " + a[0] + "\n" +
+				"代码行: " + a[1] + "\n" +
+				"注释行: " + a[2]);
 		return a;
 	}
-	public static int s(String dir) {
+	public static int s(String dir) { //递归处理目录下符合条件的文件
 		int filecount = 0;
 		File d = new File(dir);
 		if(!d.exists()) {
@@ -174,7 +160,6 @@ public class WC {
 		}
 		if(!d.isDirectory()) {
 			WC.a(dir);
-			System.out.println(dir);
 			return 1;
 		}
 		for(String fname:d.list()) {
@@ -182,11 +167,8 @@ public class WC {
 		}
 		return filecount;
 	}
-	
 	public static void main(String[] args) throws Exception {
-		
-		
-			
+		String fname = "D:\\git\\wc.exe\\WCTestFile\\Achar.c";
 			
 	}
 }

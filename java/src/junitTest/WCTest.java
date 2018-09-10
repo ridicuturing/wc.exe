@@ -15,7 +15,7 @@ class WCTest {
 		a = WC.c(root + "Aword.c");
 		assertEquals(5,a);
 		a = WC.c(root + "classicfile.c");
-		assertEquals(126,a);
+		assertEquals(128,a);
 		a = WC.c(root + "emptyline1.c");
 		assertEquals(6,a);
 		a = WC.c(root + "emptyline2.c");
@@ -31,7 +31,7 @@ class WCTest {
 		a = WC.l(root + "Aword.c");
 		assertEquals(1,a);
 		a = WC.l(root + "classicfile.c");
-		assertEquals(12,a);
+		assertEquals(13,a);
 		a = WC.l(root + "emptyline1.c");
 		assertEquals(5,a);
 		a = WC.l(root + "emptyline2.c");
@@ -63,7 +63,7 @@ class WCTest {
 		a = WC.a(root + "Aword.c");
 		assertArrayEquals(new int[] {0,1,0},a);
 		a = WC.a(root + "classicfile.c");
-		assertArrayEquals(new int[] {4,5,3},a);
+		assertArrayEquals(new int[] {4,6,3},a);
 		a = WC.a(root + "emptyline1.c");
 		assertArrayEquals(new int[] {5,0,0},a);
 		a = WC.a(root + "emptyline2.c");
