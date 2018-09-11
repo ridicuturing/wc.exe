@@ -5,6 +5,10 @@ import java.io.FileInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.filechooser.FileSystemView;
+
 public class WC {
 	private static String encode = "UTF-8"; 
 	
@@ -76,7 +80,7 @@ public class WC {
 		byte[] content = null;
 		int lines = 0;
 		if((content = getFile(fname,1)) == null) {
-			System.out.println("调用文件错误");
+			System.out.println("调用文件" + fname + "错误");
 			return -1;
 		}
 		if(content.length != 0) {
@@ -192,12 +196,20 @@ public class WC {
 	
 	public static boolean isParameter(String args) {
 		switch(args) {
-		case "-c":
-		case "-w":
-		case "-l":
-		case "-s":
-		case "-a":
 		case "-x":
+		case "-X": 
+			System.out.println("\"-x\"参数必须独立使用");
+			break;
+		case "-c":
+		case "-C":
+		case "-w":
+		case "-W":
+		case "-l":
+		case "-L":
+		case "-s":
+		case "-S":
+		case "-a":
+		case "-A":
 		case "":
 			return true;
 		}
@@ -205,36 +217,46 @@ public class WC {
 	}
 	
 	public static void deal(String fname,String[] pars) {
-		for(String par:pars) {
-			System.out.println("文件: " + fname);
-			switch(par) {
-			case "-c":
-			case "-C":
-				c(fname);
-				continue;
-			case "-w":
-			case "-W":
-				w(fname);
-				continue;
-			case "-l":
-			case "-L":
-				l(fname);
-				continue;
-			case "-a":
-			case "-A":
-				a(fname);
-				continue;
-			case "-x":
-			case "-X":
+		File f = new File(fname);
+		if(f.exists()) {
+			if(!f.isDirectory()) {
+				System.out.println("文件: " + fname);
+				for(String par:pars) {
+					switch(par) {
+					case "-c":
+					case "-C":
+						c(fname);
+						continue;
+					case "-w":
+					case "-W":
+						w(fname);
+						continue;
+					case "-l":
+					case "-L":
+						l(fname);
+						continue;
+					case "-a":
+					case "-A":
+						a(fname);
+						continue;
+					case "-x":
+					case "-X":
+					}
+				}
 			}
 		}
 	}
 	
 	public static void argsDeals(String[] pars) {
+		if(pars.length == 1 && (pars[0].equals("-X") || pars[0].equals("-x"))) { //检查是否单独的-x参数
+				chooseFile();
+				return;
+		}
 		boolean isRecursion = false;
 		String fname = pars[pars.length - 1];
+		File f = new File(fname);
 		pars[pars.length - 1] = " "; //为方便后面单纯地处理参数，转移文件名
-		if(!new File(fname).exists()) {
+		if(!f.exists()) {
 			System.out.println("文件不存在");
 			return ;
 		}
@@ -247,18 +269,36 @@ public class WC {
 				isRecursion = true;
 			}
 		}
+		
 		if(isRecursion) {
 			dealWithRecursion(fname,pars);
 		}
-		else
+		else {
+			if(f.isDirectory()) {
+				for(String name:f.list()) {
+					deal(fname + "\\" + name,pars);
+				}
+			}
 			deal(fname,pars);
+		}
 		
+	}
+	public static void chooseFile() {
+		JFileChooser jfc=new JFileChooser();  
+        //设置当前路径为桌面路径,否则将我的文档作为默认路径
+        FileSystemView fsv = FileSystemView .getFileSystemView();
+        jfc.setCurrentDirectory(fsv.getHomeDirectory());
+        //JFileChooser.FILES_AND_DIRECTORIES 选择路径和文件
+        jfc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
+        //弹出的提示框的标题
+        jfc.showDialog(new JLabel(), "确定");  
+        //用户选择的路径或文件
+        File file=jfc.getSelectedFile();
+        String[] args = {"-c","-w","-l","-a",file.getPath()};
+        argsDeals(args);
 	}
 	
 	public static void main(String[] args) throws Exception {
-		String[] aaa = {"-l","-c","-s","D:\\git\\wc.exe\\WCTestFile"};
-		WC.argsDeals(aaa);
-			
-			
+		WC.argsDeals(args);
 	}
 }
