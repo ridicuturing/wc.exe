@@ -42,7 +42,6 @@ public class WC {
 			fr.close();
 			return buf;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -54,6 +53,7 @@ public class WC {
 			return -1;
 		}
 		txt = txt.replaceAll("\r", "");  //根据视觉习惯以及从多软件的潜规则，这里把windows换行中的\r去掉
+		System.out.println("字符数: " + txt.length());
 		return txt.length();
 	}
 	
@@ -69,20 +69,25 @@ public class WC {
 		while(m.find()) {
 			num++;
 		}
+		System.out.println("词的数目: " + num);
 		return num;
 	}
 	public static int l(String fname) { //返回文件 file.c 的行数
 		byte[] content = null;
 		int lines = 0;
-		if((content = getFile(fname,1)) == null) 
+		if((content = getFile(fname,1)) == null) {
+			System.out.println("调用文件错误");
 			return -1;
-		if(content.length == 0)
-			return 0;
-		for(byte s :content) {
-			if(s == 10)
-				lines++;
 		}
-		return ++lines; 
+		if(content.length != 0) {
+			for(byte s :content) {
+				if(s == 10)
+					lines++;
+			}
+			lines++;
+		}
+		System.out.println("行数: " + lines);
+		return lines; 
 	}
 	
 	public static int[] a(String fname) { //返回更复杂的数据（代码行 / 空行 / 注释行）
@@ -144,31 +149,116 @@ public class WC {
 				a[0] += m.group(0).length();
 			}
 		}
-		System.out.println("\n" +
-				"文件名字: " + fname + "\n" + 
+		System.out.println(
 				"空行: " + a[0] + "\n" +
 				"代码行: " + a[1] + "\n" +
 				"注释行: " + a[2]);
 		return a;
 	}
-	public static int s(String dir) { //递归处理目录下符合条件的文件
+	public static int dealWithRecursion(String dir , String[] pars) { //递归处理目录下符合条件的文件
 		int filecount = 0;
 		File d = new File(dir);
-		if(!d.exists()) {
-			System.out.println(dir + " 路径不存在");
-			return -1;
-		}
 		if(!d.isDirectory()) {
-			WC.a(dir);
+			System.out.println("文件1: " + dir);
+			for(String par:pars) {
+				switch(par) {
+				case "-c":
+				case "-C":
+					c(dir);
+					continue;
+				case "-w":
+				case "-W":
+					w(dir);
+					continue;
+				case "-l":
+				case "-L":
+					l(dir);
+					continue;
+				case "-a":
+				case "-A":
+					a(dir);
+					continue;
+				case "-x":
+				case "-X":
+				}
+			}
 			return 1;
 		}
 		for(String fname:d.list()) {
-			filecount += WC.s(dir + "\\" + fname);
+			filecount += WC.dealWithRecursion(dir + "\\" + fname,pars);
 		}
 		return filecount;
 	}
+	
+	public static boolean isParameter(String args) {
+		switch(args) {
+		case "-c":
+		case "-w":
+		case "-l":
+		case "-s":
+		case "-a":
+		case "-x":
+		case "":
+			return true;
+		}
+		return false;
+	}
+	
+	public static void deal(String fname,String[] pars) {
+		for(String par:pars) {
+			System.out.println("文件: " + fname);
+			switch(par) {
+			case "-c":
+			case "-C":
+				c(fname);
+				continue;
+			case "-w":
+			case "-W":
+				w(fname);
+				continue;
+			case "-l":
+			case "-L":
+				l(fname);
+				continue;
+			case "-a":
+			case "-A":
+				a(fname);
+				continue;
+			case "-x":
+			case "-X":
+			}
+		}
+	}
+	
+	public static void argsDeals(String[] pars) {
+		boolean isRecursion = false;
+		String fname = pars[pars.length - 1];
+		pars[pars.length - 1] = " "; //为方便后面单纯地处理参数，转移文件名
+		if(!new File(fname).exists()) {
+			System.out.println("文件不存在");
+			return ;
+		}
+		for(int n = 0; n < pars.length-1 ; n++) {
+			if(!isParameter(pars[n])) {
+				System.out.println("参数\"" + pars[n] + "\"错误");
+				return;
+			}
+			if(pars[n] == "-s") {
+				isRecursion = true;
+			}
+		}
+		if(isRecursion) {
+			dealWithRecursion(fname,pars);
+		}
+		else
+			deal(fname,pars);
+		
+	}
+	
 	public static void main(String[] args) throws Exception {
-		String fname = "D:\\git\\wc.exe\\WCTestFile\\Achar.c";
+		String[] aaa = {"-l","-c","-s","D:\\git\\wc.exe\\WCTestFile"};
+		WC.argsDeals(aaa);
+			
 			
 	}
 }

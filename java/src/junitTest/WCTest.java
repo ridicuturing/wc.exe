@@ -74,7 +74,7 @@ class WCTest {
 	
 	@Test
 	public void tests() {
-		int a= WC.s(root);
+		int a= WC.dealWithRecursion(root,new String[] {"-l"});
 		assertEquals(9, a);
 		
 	}
