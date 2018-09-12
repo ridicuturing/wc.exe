@@ -326,6 +326,10 @@ public class WC {
 		for(String arg:args) {
 			System.out.println(arg);
 		}*/
+		if(args.length < 1){
+			System.out.println("请输入参数与文件！");
+			return;
+		}
 		new WC(args);
 		
 		
