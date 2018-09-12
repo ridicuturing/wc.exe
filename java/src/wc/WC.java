@@ -2,6 +2,8 @@ package wc;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,64 +12,51 @@ import javax.swing.JLabel;
 import javax.swing.filechooser.FileSystemView;
 
 public class WC {
-	private static String encode = "UTF-8"; 
-	
-	public static void setEncode(String c) {
-		encode = c;
+	private String encode = "UTF-8"; 
+	private String txt = "";
+	private int fileCount = 0;
+	public WC(String fname) {
+		getFile(fname);
+	}
+	public WC(String[] pars){
+		argsDeals(pars);
 	}
 	
-	public static String getFile(String fname) {
+	public void setEncode(String c) {
+		encode = c;
+	}
+	public int getFileCount() {
+		return fileCount;
+	}
+	
+	public int getFile(String fname) {
 		File f = new File(fname);
 		if(!f.isFile()) {
-			return null;
+			return -1;
 		}
+		fileCount += 1 ;
 		byte[] buf = new byte[(int) f.length()];
 		try {
 			FileInputStream fr = new FileInputStream(f);
 			fr.read(buf);
+			this.txt = new String(buf,encode);
 			fr.close();
-			return new String(buf,encode);
 		} catch (Exception e) {
 			System.out.println("获取文件内容失败或编码格式错误");
 			e.printStackTrace();
 		}
-		return null;
+		return 0;
 	}
 	
-	public static byte[] getFile(String fname,int a) {
-		File f = new File(fname);
-		if(!f.isFile()) {
-			return null;
-		}
-		byte[] buf = new byte[(int) f.length()];
-		try {
-			FileInputStream fr = new FileInputStream(f);
-			fr.read(buf);
-			fr.close();
-			return buf;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	public static long  c(String fname) { //返回文件 file.c 的字符数
-		String txt = null;
-		if((txt = getFile(fname)) == null) {
-			return -1;
-		}
+	public long  c() { //返回文件 file.c 的字符数
 		txt = txt.replaceAll("\r", "");  //根据视觉习惯以及从多软件的潜规则，这里把windows换行中的\r去掉
 		System.out.println("字符数: " + txt.length());
 		return txt.length();
 	}
 	
-	public static long w(String fname) { //返回文件 file.c 的词的数目
+	public long w() { //返回文件 file.c 的词的数目
 		long num = 0;
 		String pattern =  "[a-zA-Z_][\\w]{0,}|[\\u4e00-\\u9fa5]"; //"[\\u4e00-\\u9fa5\\w]+"这个可以识别单词，但不能把中文一个个分离出来，只能一句一句
-		String txt = "";
-		if((txt = getFile(fname)) == null) {
-			return -1;
-		}
 		Pattern r = Pattern.compile(pattern);
 		Matcher m = r.matcher(txt);
 		while(m.find()) {
@@ -76,15 +65,11 @@ public class WC {
 		System.out.println("词的数目: " + num);
 		return num;
 	}
-	public static int l(String fname) { //返回文件 file.c 的行数
-		byte[] content = null;
+	public int l() { //返回文件 file.c 的行数
 		int lines = 0;
-		if((content = getFile(fname,1)) == null) {
-			System.out.println("调用文件" + fname + "错误");
-			return -1;
-		}
-		if(content.length != 0) {
-			for(byte s :content) {
+		
+		if(txt.length() != 0) {
+			for(byte s :txt.getBytes()) {
 				if(s == 10)
 					lines++;
 			}
@@ -94,14 +79,9 @@ public class WC {
 		return lines; 
 	}
 	
-	public static int[] a(String fname) { //返回更复杂的数据（代码行 / 空行 / 注释行）
-		String txt = "";
+	public int[] a() { //返回更复杂的数据（代码行 / 空行 / 注释行）
 		boolean noteflag = false;
 		int[] a = {0,0,0}; //emptyline,codeline,noteline
-		if((txt = getFile(fname)) == null) {
-			System.out.println("a参数调用文件" + fname + "错误!");
-			return null;
-		}
 		if(txt.length() != 0) {
 			String lines[] = txt.replaceAll("\r","").split("\n");
 			for(String line:lines) {
@@ -159,47 +139,42 @@ public class WC {
 				"注释行: " + a[2]);
 		return a;
 	}
-	public static int dealWithRecursion(String dir , String[] pars) { //递归处理目录下符合条件的文件
+	public int dealWithRecursion(String dir , String[] pars) { //递归处理目录下符合条件的文件
 		int filecount = 0;
 		File d = new File(dir);
 		if(!d.isDirectory()) {
-			System.out.println("文件1: " + dir);
+			getFile(dir);
+			System.out.println("文件: " + dir);
 			for(String par:pars) {
 				switch(par) {
 				case "-c":
 				case "-C":
-					c(dir);
+					c();
 					continue;
 				case "-w":
 				case "-W":
-					w(dir);
+					w();
 					continue;
 				case "-l":
 				case "-L":
-					l(dir);
+					l();
 					continue;
 				case "-a":
 				case "-A":
-					a(dir);
+					a();
 					continue;
-				case "-x":
-				case "-X":
 				}
 			}
 			return 1;
 		}
 		for(String fname:d.list()) {
-			filecount += WC.dealWithRecursion(dir + "\\" + fname,pars);
+			filecount += dealWithRecursion(dir + "\\" + fname,pars);
 		}
 		return filecount;
 	}
 	
-	public static boolean isParameter(String args) {
+	public boolean isParameter(String args) {
 		switch(args) {
-		case "-x":
-		case "-X": 
-			System.out.println("\"-x\"参数必须独立使用");
-			break;
 		case "-c":
 		case "-C":
 		case "-w":
@@ -216,57 +191,67 @@ public class WC {
 		return false;
 	}
 	
-	public static void deal(String fname,String[] pars) {
+	public void deal(String fname,String[] pars) {
 		File f = new File(fname);
 		if(f.exists()) {
 			if(!f.isDirectory()) {
+				getFile(fname);
 				System.out.println("文件: " + fname);
 				for(String par:pars) {
 					switch(par) {
 					case "-c":
 					case "-C":
-						c(fname);
+						c();
 						continue;
 					case "-w":
 					case "-W":
-						w(fname);
+						w();
 						continue;
 					case "-l":
 					case "-L":
-						l(fname);
+						l();
 						continue;
 					case "-a":
 					case "-A":
-						a(fname);
+						a();
 						continue;
-					case "-x":
-					case "-X":
 					}
 				}
 			}
 		}
 	}
 	
-	public static void argsDeals(String[] pars) {
-		if(pars.length == 1 && (pars[0].equals("-X") || pars[0].equals("-x"))) { //检查是否单独的-x参数
-				chooseFile();
-				return;
-		}
+	public void argsDeals(String[] pars) {
 		boolean isRecursion = false;
 		String fname = pars[pars.length - 1];
+		Set<String> set = new TreeSet<String>();
 		File f = new File(fname);
-		pars[pars.length - 1] = " "; //为方便后面单纯地处理参数，转移文件名
+		
+		if(pars.length == 1 && (pars[0].equals("-X") || pars[0].equals("-x"))) {
+			chooseFile();
+			return;
+		}
+		pars[pars.length - 1] = ""; //为方便后面单纯地处理参数，转移文件名
+		for(String par:pars) {
+			set.add(par);
+		}
+		set.remove("");
+		pars =  (String[]) set.toArray(new String[0]);
 		if(!f.exists()) {
 			System.out.println("文件不存在");
 			return ;
 		}
-		for(int n = 0; n < pars.length-1 ; n++) {
+		for(int n = 0; n < pars.length ; n++) {
 			if(!isParameter(pars[n])) {
 				System.out.println("参数\"" + pars[n] + "\"错误");
 				return;
 			}
-			if(pars[n] == "-s") {
+			if(pars[n].equals("-s") || pars[n].equals("-S")) {
 				isRecursion = true;
+			}
+			if(pars[n].equals("-x") || pars[n].equals("-X")) {
+				System.out.println("\"-x\"参数必须独立使用");
+				return;
 			}
 		}
 		
@@ -283,7 +268,7 @@ public class WC {
 		}
 		
 	}
-	public static void chooseFile() {
+	public void chooseFile() {
 		JFileChooser jfc=new JFileChooser();  
         //设置当前路径为桌面路径,否则将我的文档作为默认路径
         FileSystemView fsv = FileSystemView .getFileSystemView();
@@ -299,6 +284,10 @@ public class WC {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		WC.argsDeals(args);
+		/*
+		for(String arg:args) {
+			System.out.println(arg);
+		}*/
+		new WC(args);
 	}
 }
