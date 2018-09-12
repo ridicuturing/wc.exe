@@ -2,10 +2,16 @@ package wc;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -231,6 +237,10 @@ public class WC {
 			chooseFile();
 			return;
 		}
+		if(fname.indexOf("?") != -1 || fname.indexOf("*") != -1) {
+			regular(pars);
+			return;
+		}
 		pars[pars.length - 1] = ""; //为方便后面单纯地处理参数，转移文件名
 		for(String par:pars) {
 			set.add(par);
@@ -238,7 +248,7 @@ public class WC {
 		set.remove("");
 		pars =  (String[]) set.toArray(new String[0]);
 		if(!f.exists()) {
-			System.out.println("文件不存在");
+			System.out.println(fname + "文件不存在");
 			return ;
 		}
 		for(int n = 0; n < pars.length ; n++) {
@@ -283,11 +293,41 @@ public class WC {
         argsDeals(args);
 	}
 	
+	public void regular(String[] pars) {
+		String fname = pars[pars.length - 1];
+		File f = new File(fname);
+		String[] fnames = fname.split("\\\\");
+		String name = fnames[fnames.length - 1];
+		Path path = Paths.get(f.getParent());
+		Pattern pattern = Pattern.compile(name.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".{0,}").replaceAll("\\?","."));
+		List<Path> paths;
+		try {
+			paths = Files.walk(path).filter(p -> { 
+				 //如果不是普通的文件，则过滤掉 
+				 if(!Files.isRegularFile(p)) { 
+				  return false; 
+				 }
+				 File file = p.toFile(); 
+				 Matcher matcher = pattern.matcher(file.getName()); 
+				 return matcher.matches(); 
+				}).collect(Collectors.toList());
+			for(Path item:paths) {
+				pars[pars.length - 1] = item.toFile().getPath();
+				new WC(pars);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+		
+	}
+	
 	public static void main(String[] args) throws Exception {
 		/*
 		for(String arg:args) {
 			System.out.println(arg);
 		}*/
 		new WC(args);
+		
+		
 	}
 }
